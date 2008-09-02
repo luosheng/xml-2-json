@@ -53,7 +53,7 @@ LS.Xml2Json = function(){
      */
     var getXml = function(xmlElement){
         var xmlDoc = null;
-        if (xmlElement.readyState) {
+        if (xmlElement.nodeType) {
             xmlDoc = xmlElement;
         }
         else 
