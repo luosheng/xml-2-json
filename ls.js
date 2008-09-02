@@ -162,3 +162,26 @@ LS.Xml2Json = function(){
     }
 }
 ();
+
+LS.StringBuilder = function(){
+    var container = [];
+    this.append = function(s){
+        container.push(s);
+    }
+    this.toString = function(){
+        return container.join('');
+    }
+}
+
+LS.String = function(){
+    return {
+        format: function(str){
+            for (var i = 1, length = arguments.length; i < length; i++) {
+                var re = new RegExp('\\{' + (i - 1) + '\\}', 'gm');
+                str = str.replace(re, arguments[i]);
+            }
+            return str;
+        }
+    }
+}
+();
