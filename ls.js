@@ -126,21 +126,10 @@ LS.Xml2Json = function(){
         // Deal with the node's child nodes.
         
         LS.Util.each(node.childNodes, function(child){
-            switch(child.nodeType) {
-                case ELEMENT_NODE:
-                    addProperty(obj, child.nodeName, convertAt(child, {}));
-                    break;
-                case TEXT_NODE:
-                    if (!LS.Util.isBlank(child.nodeValue))
-                        addProperty(obj, 'value', child.nodeValue);
-                    break;
-                case CDATA_SECTION_NODE:
-                    if (!LS.Util.isBlank(child.nodeValue))
-                      addProperty(obj, 'value', child.nodeValue);
-                    break;
-                default:
-                    break;
-            }
+            if (child.nodeType === ELEMENT_NODE)
+                addProperty(obj, child.nodeName, convertAt(child, {}));
+            else if (child.nodeType === TEXT_NODE || child.nodeType === CDATA_SECTION_NODE)
+                addProperty(obj, 'value', child.nodeValue);
         });
         
         // Re-construct the object.
