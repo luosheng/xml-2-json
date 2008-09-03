@@ -44,8 +44,10 @@ LS.Util = function(){
 LS.Xml2Json = function(){
 
     // IE doesn't have definitions for Node.TEXT_NODE and Node.COMMENT_NODE
-    var TEXT_NODE = Node.TEXT_NODE || 3;
-    var COMMENT_NODE = Node.COMMENT_NODE || 8;
+    var ELEMENT_NODE = 1;
+    var TEXT_NODE = 3;
+    var CDATA_SECTION_NODE = 4;
+    var COMMENT_NODE = 8;
     
     /**
      * Get an xml object from the input parameter.
@@ -102,6 +104,12 @@ LS.Xml2Json = function(){
         return obj;
     }
     
+    var addProperty=function(object, property, value) {
+        if (!object[property])
+            object[property]  = [];
+        object[property].push(value);
+    }
+    
     /**
      * Parse the a certain xml node into json.
      * @param {Object} node
@@ -118,30 +126,21 @@ LS.Xml2Json = function(){
         // Deal with the node's child nodes.
         
         LS.Util.each(node.childNodes, function(child){
-        
-            // Skip empty text nodes and comment nodes.
-            
-            if (child.nodeType !== TEXT_NODE && child.nodeType !== COMMENT_NODE) {
-                var name = child.nodeName;
-                
-                // Recursively deal with all nodes.
-                
-                var childObj = convertAt(child, {});
-                
-                // A node may contain serverl child nodes with same name, so
-                // they are put into an array first.
-                
-                if (!obj[name]) 
-                    obj[name] = [];
-                obj[name].push(childObj);
+            switch(child.nodeType) {
+                case ELEMENT_NODE:
+                    addProperty(obj, child.nodeName, convertAt(child, {}));
+                    break;
+                case TEXT_NODE:
+                    if (!LS.Util.isBlank(child.nodeValue))
+                        addProperty(obj, 'value', child.nodeValue);
+                    break;
+                case CDATA_SECTION_NODE:
+                    if (!LS.Util.isBlank(child.nodeValue))
+                      addProperty(obj, 'value', child.nodeValue);
+                    break;
+                default:
+                    break;
             }
-            else 
-                if (child.nodeType === TEXT_NODE && !LS.Util.isBlank(child.data)) {
-                
-                    // For non-empty text nodes, put it to the "value" property first.
-                    
-                    obj['value'] = child.data;
-                }
         });
         
         // Re-construct the object.
