@@ -77,37 +77,27 @@ LS.Xml2Json = function(){
      * @param {Object} obj
      */
     var reduce = function(obj){
-        var count = 0;
-        
-        // At the very first, the object only contains properties
-        // represented in array way.
-        
         for (var property in obj) {
-            var value = obj[property];
-            
-            // If some property contains only one item, we'll drop the
-            // array, and make the only item to be the property instead.
-            
-            if (LS.Util.isArray(value) && value.length === 1) 
-                obj[property] = value[0];
-            count++;
+            if (property !== 'value') 
+                return obj;
         }
-        
-        // If the object contains only one property - "value",
-        // which was intented to be the text value of some xml
-        // node, then we will drop the "value" property and make
-        // the text content to be the value.
-        
-        if (count === 1 && obj['value']) 
-            obj = obj['value'];
-        
-        return obj;
+        return obj['value'];
     }
     
-    var addProperty=function(object, property, value) {
-        if (!object[property])
-            object[property]  = [];
-        object[property].push(value);
+	/**
+	 * 
+	 * @param {Object} object
+	 * @param {String} property
+	 * @param {Object} value
+	 */
+    var addProperty = function(object, property, value){
+        if (!object[property]) 
+            object[property] = value;
+        else 
+            if (LS.Util.isArray(object[property])) 
+                object[property].push(value);
+            else 
+                object[property] = [object[property], value];
     }
     
     /**
@@ -126,10 +116,12 @@ LS.Xml2Json = function(){
         // Deal with the node's child nodes.
         
         LS.Util.each(node.childNodes, function(child){
-            if (child.nodeType === ELEMENT_NODE)
+            if (child.nodeType === ELEMENT_NODE) 
                 addProperty(obj, child.nodeName, convertAt(child, {}));
-            else if (child.nodeType === TEXT_NODE || child.nodeType === CDATA_SECTION_NODE)
-                addProperty(obj, 'value', child.nodeValue);
+            else 
+                if (child.nodeType === TEXT_NODE || child.nodeType === CDATA_SECTION_NODE) 
+                    if (!LS.Util.isBlank(child.nodeValue)) 
+                        addProperty(obj, 'value', child.nodeValue);
         });
         
         // Re-construct the object.
